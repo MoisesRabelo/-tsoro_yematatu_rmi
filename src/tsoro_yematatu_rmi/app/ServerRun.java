@@ -11,11 +11,11 @@ public class ServerRun {
 		try {
 			Server server = new Server();
 			LocateRegistry.createRegistry(1099);
-			Naming.rebind("//localhost/ServerRef", server);
+			Naming.rebind("//localhost/serverRMI", server);
 
-			System.out.println("Waiting Connections...");
+			System.out.println("Esperando conexões");
 		} catch (Exception e) {
-			System.out.println("Exception - main()");
+			e.printStackTrace();
 		}
 
 	}
