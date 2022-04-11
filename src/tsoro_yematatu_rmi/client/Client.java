@@ -81,19 +81,15 @@ public class Client extends UnicastRemoteObject implements IClient {
 	}
 
 	private List<Integer[]> getPossibleVictories() {
-		List<Integer[]> list = new ArrayList<Integer[]>();
+		Integer[] firstColumn = {0, 1, 4};
+		Integer[] secondColumn = {0, 2, 5};
+		Integer[] thirdColumn = {0, 3, 6};
+		Integer[] firstLine = {1, 2, 3};
+		Integer[] secondLine = {4, 5, 6};
+		
 
-		Integer[] h1 = {1, 2, 3};
-		Integer[] h2 = {4, 5, 6};
-		Integer[] d1 = {0, 1, 4};
-		Integer[] d2 = {0, 3, 6};
-		Integer[] v = {0, 2, 5};
-
-		list.add(h1);
-		list.add(h2);
-		list.add(d1);
-		list.add(d2);
-		list.add(v);
+		List<Integer[]> list = new ArrayList<>(
+				Arrays.asList(firstColumn, secondColumn, thirdColumn, firstLine, secondLine));
 
 		return list;
 	}
@@ -257,8 +253,8 @@ public class Client extends UnicastRemoteObject implements IClient {
 		}
 	}
 
+	//Feito pensando em Jogo da velha
 	private void checkWinner() {
-
 		for (Integer[] pv : possibleVictories) {
 			if (Arrays.asList(pv).containsAll(Arrays.asList(myShots))) {
 				winner = true;
