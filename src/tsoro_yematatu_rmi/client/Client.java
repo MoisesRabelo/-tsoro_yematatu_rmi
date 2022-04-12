@@ -34,7 +34,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 	private List<Integer[]> possibleVictories;
 	private Integer[] myShots;
 	private Integer[] enemyShots;
-	private Integer[] allShots;
+	private Integer[] board;
 
 	private boolean buttonsEnabled;
 	private boolean winner;
@@ -48,7 +48,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 		this.turnsMade = 0;
 		this.myShots = new Integer[3];
 		this.enemyShots = new Integer[3];
-		this.allShots = new Integer[7];
+		this.board = new Integer[7];
 
 		this.piecesUsed = 0;
 		this.enemyPieces = 0;
@@ -191,7 +191,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 		for (int i = 0; i < screen.getButtons().length; i++) {
 			screen.getButtons()[i].setEnabled(buttonsEnabled);
 
-			if (allShots[i] != null) {
+			if (board[i] != null) {
 				screen.getButtons()[i].setEnabled(false);
 			}
 		}
@@ -203,20 +203,20 @@ public class Client extends UnicastRemoteObject implements IClient {
 
 		Integer[] btnEnable = new Integer[2];
 
-		for (int i = 0; i < allShots.length; i++) {
-			if (allShots[i] == null) {
+		for (int i = 0; i < board.length; i++) {
+			if (board[i] == null) {
 				btnEnable[0] = i;
 				screen.getButtons()[i].setEnabled(false);
 				screen.getButtons()[i].setDisabledIcon(screen.getImgDefault());
 			}
 			
-			if (allShots[i] != null) {
+			if (board[i] != null) {
 				screen.getButtons()[i].setEnabled(false);
 			}
 		}
 
-		for (int i = 0; i < allShots.length; i++) {
-			if (allShots[i] != null && allShots[i] == 1) {
+		for (int i = 0; i < board.length; i++) {
+			if (board[i] != null && board[i] == 1) {
 				btnEnable[1] = i;
 
 				for (Integer[] pv : possibleVictories) {
@@ -255,17 +255,61 @@ public class Client extends UnicastRemoteObject implements IClient {
 
 	//Feito pensando em Jogo da velha
 	private void checkWinner() {
+//		Integer cima = board[0];
+//		Integer[] fila1 = {board[1], board[2], board[3]};
+//		Integer[] fila2 = {board[4], board[5], board[6]};
+//		
+//		if(board[0] == null) {
+//			if(fila1[0] != null && fila1[0].equals(fila1[1]) && fila1[0].equals(fila1[2])) {
+//				if(fila1[0].equals(playerId)) {
+//					winner = true;
+//					screen.getChatView().getChatArea().append("\n-> Player " + playerId + " GANHOU :D");
+//					try {
+//						iServer.sendMessage("@win@", playerId);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//				
+//			} else if(fila2[0] != null 
+//					&& fila2[0].equals(fila2[1]) 
+//					&& fila2[1].equals(fila2[2])) {
+//				if(fila2[0].equals(playerId)) {
+//					winner = true;
+//					screen.getChatView().getChatArea().append("\n-> Player " + playerId + " GANHOU :D");
+//					try {
+//						iServer.sendMessage("@win@", playerId);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		} else {
+//			if(cima.equals(playerId)) {
+//				for(int i = 0; i < 3; i++) {
+//					if(cima.equals(fila1[i]) && cima.equals(fila2[i])) {
+//						winner = true;
+//						screen.getChatView().getChatArea().append("\n-> Player " + playerId + " GANHOU :D");
+//						try {
+//							iServer.sendMessage("@win@", playerId);
+//						} catch (Exception e) {
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+//			}			
+//		}
+		
 		for (Integer[] pv : possibleVictories) {
 			if (Arrays.asList(pv).containsAll(Arrays.asList(myShots))) {
-				winner = true;
-				
+				winner = true;				
 				screen.getChatView().getChatArea().append("\n-> Player " + playerId + " GANHOU :D");
-
 				try {
 					iServer.sendMessage("@win@", playerId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				break;
 			}
 		}
 	}
@@ -298,8 +342,8 @@ public class Client extends UnicastRemoteObject implements IClient {
 	}
 	
 	private int getEmptySpace() {
-		for (int i = 0; i < allShots.length; i++) {
-			if (allShots[i] == null) {
+		for (int i = 0; i < board.length; i++) {
+			if (board[i] == null) {
 				return i;
 			}
 		}
@@ -315,15 +359,15 @@ public class Client extends UnicastRemoteObject implements IClient {
 	}
 
 	private void updateAllShotsBoard() {
-		allShots = new Integer[7];
+		board = new Integer[7];
 
 		for (int i = 0; i < myShots.length; i++) {
 			if (myShots[i] != null) {
-				allShots[myShots[i]] = 1;
+				board[myShots[i]] = 1;
 			}
 
 			if (enemyShots[i] != null) {
-				allShots[enemyShots[i]] = 2;
+				board[enemyShots[i]] = 2;
 			}
 		}
 	}
@@ -343,11 +387,11 @@ public class Client extends UnicastRemoteObject implements IClient {
 		if (turnsMade <= 3) {
 			for (int i = 0; i < myShots.length; i++) {
 				if (myShots[i] != null) {
-					allShots[myShots[i]] = 1;
+					board[myShots[i]] = 1;
 				}
 
 				if (enemyShots[i] != null) {
-					allShots[enemyShots[i]] = 2;
+					board[enemyShots[i]] = 2;
 				}
 			}
 		}
