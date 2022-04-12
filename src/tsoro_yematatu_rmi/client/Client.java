@@ -79,19 +79,89 @@ public class Client extends UnicastRemoteObject implements IClient {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void updateTurn(int btnMove) throws RemoteException {
+		if (btnMove != -1) {
+			screen.getChatView().getChatArea().append(
+					"\n-> SUA VEZ Player " + playerId);
 
-	private List<Integer[]> getPossibleVictories() {
-		Integer[] firstColumn = {0, 1, 4};
-		Integer[] secondColumn = {0, 2, 5};
-		Integer[] thirdColumn = {0, 3, 6};
-		Integer[] firstLine = {1, 2, 3};
-		Integer[] secondLine = {4, 5, 6};
+			if (enemyPieces < 3) {
+				enemyShots[enemyPieces] = btnMove;
+				enemyPieces++;
+			}
+		}
+
+		if (turnsMade <= 3) {
+			for (int i = 0; i < myShots.length; i++) {
+				if (myShots[i] != null) {
+					board[myShots[i]] = 1;
+				}
+
+				if (enemyShots[i] != null) {
+					board[enemyShots[i]] = 2;
+				}
+			}
+		}
+		buttonsEnabled = true;
+
+		if (turnsMade >= 3 && enemyPieces == 3) {
+			updateButtonAfterPlay();
+		} else {
+			updateButtons();
+		}
+
+		if (!winner) {
+			checkWinner();
+		}		
 		
+	}
 
-		List<Integer[]> list = new ArrayList<>(
-				Arrays.asList(firstColumn, secondColumn, thirdColumn, firstLine, secondLine));
+	@Override
+	public void updateOpponentShots(Integer[] pieces) throws RemoteException {
+		enemyShots = pieces;
+		updateAllShotsBoard();
+		buttonsEnabled = true;
 
-		return list;
+		if (turnsMade >= 3 && enemyPieces == 3) {
+			updateButtonAfterPlay();
+		} else updateButtons();
+
+		if (!winner) {
+			checkWinner();
+		}
+	}
+
+	@Override
+	public void receiveMessage(String message) throws RemoteException {
+		if (!message.equalsIgnoreCase("@exit@")) {
+			
+			if (!winner && message.equalsIgnoreCase("@win@")) {
+				buttonsEnabled = false;
+				winner = true;
+				updateButtons();
+				
+				screen.getChatView().getChatArea().append("\n-> Player " + opponent + " GANHOU :D");
+			}
+			
+			if (!message.equalsIgnoreCase("@win@")) {
+				screen.getChatView().getChatArea().append("\nPlayer " + opponent + ": " + message);
+			}
+		}
+	}
+	
+	public void sendChatMessage() {
+		String message = screen.getChatView().getChatTextField().getText();
+
+		screen.getChatView().getChatArea().append("\nPlayer " + playerId + ": " + message);
+
+		try {
+			iServer.sendMessage(message, playerId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		screen.getChatView().getChatTextField().setText("");
 	}
 
 	private void setUpPlayers() {
@@ -103,54 +173,6 @@ public class Client extends UnicastRemoteObject implements IClient {
 			buttonsEnabled = false;
 		}
 		updateButtons();
-	}
-
-	private ActionListener createActionButton() {
-		ActionListener al = new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				JButton jb = (JButton) ae.getSource();
-				int btnMove = Integer.parseInt(jb.getActionCommand());
-
-				if (piecesUsed < 3) {
-					myShots[piecesUsed] = btnMove;
-					piecesUsed++;
-				}
-				
-				buttonsEnabled = false;
-				turnsMade++;
-				
-				if (turnsMade > 3) {
-					validateMoveAndUpdateShots(btnMove);
-				} else {
-					updateButtons();
-
-					try {
-						iServer.sendMove(btnMove, playerId);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					checkWinner();
-				}
-			}
-		};
-		return al;
-	}
-
-	private ActionListener createActionDesistButton() {
-		ActionListener al = new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				screen.getChatView().getChatArea().append("\n-> Player" + playerId + " desistiu D:"
-						+ "\n" +"-> Player " + opponent + " venceu :D");
-
-				buttonsEnabled = false;
-				updateButtons();
-
-				winner = true;
-			}
-		};
-		
-		return al;
 	}
 	
 	private void setUpButtons() {
@@ -341,6 +363,54 @@ public class Client extends UnicastRemoteObject implements IClient {
 		}
 	}
 	
+	private ActionListener createActionButton() {
+		ActionListener al = new ActionListener() {
+			public void actionPerformed(ActionEvent ae) {
+				JButton jb = (JButton) ae.getSource();
+				int btnMove = Integer.parseInt(jb.getActionCommand());
+
+				if (piecesUsed < 3) {
+					myShots[piecesUsed] = btnMove;
+					piecesUsed++;
+				}
+				
+				buttonsEnabled = false;
+				turnsMade++;
+				
+				if (turnsMade > 3) {
+					validateMoveAndUpdateShots(btnMove);
+				} else {
+					updateButtons();
+
+					try {
+						iServer.sendMove(btnMove, playerId);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					checkWinner();
+				}
+			}
+		};
+		return al;
+	}
+
+	private ActionListener createActionDesistButton() {
+		ActionListener al = new ActionListener() {
+			public void actionPerformed(ActionEvent ae) {
+				screen.getChatView().getChatArea().append("\n-> Player" + playerId + " desistiu D:"
+						+ "\n" +"-> Player " + opponent + " venceu :D");
+
+				buttonsEnabled = false;
+				updateButtons();
+
+				winner = true;
+			}
+		};
+		
+		return al;
+	}
+	
 	private int getEmptySpace() {
 		for (int i = 0; i < board.length; i++) {
 			if (board[i] == null) {
@@ -372,88 +442,17 @@ public class Client extends UnicastRemoteObject implements IClient {
 		}
 	}
 
-	@Override
-	public void updateTurn(int btnMove) throws RemoteException {
-		if (btnMove != -1) {
-			screen.getChatView().getChatArea().append(
-					"\n-> SUA VEZ Player " + playerId);
-
-			if (enemyPieces < 3) {
-				enemyShots[enemyPieces] = btnMove;
-				enemyPieces++;
-			}
-		}
-
-		if (turnsMade <= 3) {
-			for (int i = 0; i < myShots.length; i++) {
-				if (myShots[i] != null) {
-					board[myShots[i]] = 1;
-				}
-
-				if (enemyShots[i] != null) {
-					board[enemyShots[i]] = 2;
-				}
-			}
-		}
-		buttonsEnabled = true;
-
-		if (turnsMade >= 3 && enemyPieces == 3) {
-			updateButtonAfterPlay();
-		} else {
-			updateButtons();
-		}
-
-		if (!winner) {
-			checkWinner();
-		}		
+	private List<Integer[]> getPossibleVictories() {
+		Integer[] firstColumn = {0, 1, 4};
+		Integer[] secondColumn = {0, 2, 5};
+		Integer[] thirdColumn = {0, 3, 6};
+		Integer[] firstLine = {1, 2, 3};
+		Integer[] secondLine = {4, 5, 6};
 		
+
+		List<Integer[]> list = new ArrayList<>(
+				Arrays.asList(firstColumn, secondColumn, thirdColumn, firstLine, secondLine));
+
+		return list;
 	}
-
-	@Override
-	public void updateOpponentShots(Integer[] pieces) throws RemoteException {
-		enemyShots = pieces;
-		updateAllShotsBoard();
-		buttonsEnabled = true;
-
-		if (turnsMade >= 3 && enemyPieces == 3) {
-			updateButtonAfterPlay();
-		} else updateButtons();
-
-		if (!winner) {
-			checkWinner();
-		}
-	}
-
-	@Override
-	public void receiveMessage(String message) throws RemoteException {
-		if (!message.equalsIgnoreCase("@exit@")) {
-			
-			if (!winner && message.equalsIgnoreCase("@win@")) {
-				buttonsEnabled = false;
-				winner = true;
-				updateButtons();
-				
-				screen.getChatView().getChatArea().append("\n-> Player " + opponent + " GANHOU :D");
-			}
-			
-			if (!message.equalsIgnoreCase("@win@")) {
-				screen.getChatView().getChatArea().append("\nPlayer " + opponent + ": " + message);
-			}
-		}
-	}
-	
-	public void sendChatMessage() {
-		String message = screen.getChatView().getChatTextField().getText();
-
-		screen.getChatView().getChatArea().append("\nPlayer " + playerId + ": " + message);
-
-		try {
-			iServer.sendMessage(message, playerId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		screen.getChatView().getChatTextField().setText("");
-	}
-
 }
