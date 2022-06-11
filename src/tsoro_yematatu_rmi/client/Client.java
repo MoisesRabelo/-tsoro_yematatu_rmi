@@ -57,7 +57,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 
 		this.winner = false;
 
-		connectServer();
+		connection();
 		screen = new Screen(String.valueOf(playerId));
 		setUpPlayers();
 
@@ -67,7 +67,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 		System.out.println("-> O Player " + playerId + " se conectou ao servidor");
 	}
 
-	private void connectServer() {
+	private void connection() {
 		try {
 			iServer = (IServer) Naming.lookup(ROTE);
 			playerId = iServer.getPlayerId();
@@ -81,7 +81,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 	}
 	
 	@Override
-	public void updateTurn(int btnMove) throws RemoteException {
+	public void updateTurn(Integer btnMove) throws RemoteException {
 		if (btnMove != -1) {
 			screen.getChatView().getChatArea().append(
 					"\n-> SUA VEZ Player " + playerId);

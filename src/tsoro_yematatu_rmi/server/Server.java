@@ -38,7 +38,7 @@ public class Server extends UnicastRemoteObject implements IServer {
 	}
 
 	@Override
-	public void lookupPlayer(String playerURL, int playerId) throws RemoteException {
+	public void lookupPlayer(String playerURL, Integer playerId) throws RemoteException {
 		try {
 			if (playerId == 1) {
 				player1 = (IClient) Naming.lookup(playerURL);
@@ -51,7 +51,7 @@ public class Server extends UnicastRemoteObject implements IServer {
 	}
 
 	@Override
-	public void sendMove(int move, int playerId) throws RemoteException {
+	public void sendMove(Integer move, Integer playerId) throws RemoteException {
 		if (playerId == 1) {
 			player2.updateTurn(move);
 		}
@@ -62,7 +62,7 @@ public class Server extends UnicastRemoteObject implements IServer {
 	}
 
 	@Override
-	public void updateShots(Integer[] pieces, int playerId) throws RemoteException {
+	public void updateShots(Integer[] pieces, Integer playerId) throws RemoteException {
 		if (playerId == 1) {
 			player2.updateOpponentShots(pieces);
 		}
@@ -73,7 +73,7 @@ public class Server extends UnicastRemoteObject implements IServer {
 	}
 
 	@Override
-	public void sendMessage(String message, int playerId) throws RemoteException {
+	public void sendMessage(String message, Integer playerId) throws RemoteException {
 		if (playerId == 1) {
 			player2.receiveMessage(message);
 		} else {
